@@ -103,7 +103,7 @@ describe('assume-enzyme', function () {
       throw new Error('I should fail hard');
     });
 
-    its('finds classNames deeply in the tree using .deep', function (wrapper) {
+    its('finds classNames deeply in the tree using .anywhere', function (wrapper) {
       assume(wrapper).anywhere.has.className('single-class-name');
       assume(wrapper).does.not.anywhere.have.className('single-class-names');
     });
@@ -127,7 +127,20 @@ describe('assume-enzyme', function () {
       );
     }
 
+    function Anywhere() {
+      return (
+        <div className='hello world'>
+          <div id='we' className='need to go'>
+            <div className='deeper'>
+              <User className='holy' />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const its = renderers(<Fixture />);
+    const anywhere = renderers(<Anywhere />);
 
     it('is a function', function () {
       var assumed = assume('what');
@@ -140,6 +153,11 @@ describe('assume-enzyme', function () {
       assume(wrapper).contains(<User className='moly' />);
       assume(wrapper).contains(<User className='holy' />);
       assume(wrapper).does.not.contain(<User className='what' />);
+    });
+
+    anywhere('finds User component deeply in the tree using .anywhere', function (wrapper) {
+      assume(wrapper).anywhere.contains(<User className='holy' />);
+      assume(wrapper).does.not.anywhere.contain(<User className='holys' />);
     });
   });
 

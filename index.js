@@ -155,9 +155,16 @@ module.exports = function plugin(assume, util) {
     }
 
     var value = this.value
+      , found = value.contains(component)
       , expect = format('%s to @ contain %s', debug(value), toString(component));
 
-    return this.test(value.contains(component), msg, expect);
+    if (!this._anywhere || found) return this.test(found, msg, expect);
+
+    found = anywhere(value, function iterate(node) {
+      return node.contains(component);
+    });
+
+    return this.test(found, msg, expect);
   });
 
   /**
