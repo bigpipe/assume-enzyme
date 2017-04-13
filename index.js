@@ -1,6 +1,7 @@
 'use strict';
 
 var toString = require('react-element-to-jsx-string');
+var beautify = require('html/lib/html');
 var cheerio = require('cheerio');
 var enzyme = require('enzyme');
 
@@ -47,6 +48,20 @@ module.exports = function plugin(assume, util) {
   }
 
   /**
+   * Clean up the HTML like output of the enzyme debug command so it's more
+   * human readable in assertion messages.
+   *
+   * @param {Enzyme} value Enzyme instance
+   * @returns {String} Component.
+   * @private
+   */
+  function debug(value) {
+    return beautify.prettyPrint(value.debug(), {
+      indent_size: 2
+    });
+  }
+
+  /**
    * Assert that our given value is an enzyme wrapper.
    *
    * @param {String} msg Reason of assertion failure.
@@ -89,7 +104,7 @@ module.exports = function plugin(assume, util) {
     }
 
     var value = this.value
-      , expect = format('%j to @ contain %s', value.html(), toString(component));
+      , expect = format('%s to @ contain %s', debug(value), toString(component));
 
     return this.test(value.contains(component), msg, expect);
   });
@@ -118,7 +133,7 @@ module.exports = function plugin(assume, util) {
    */
   assume.add('checked', function checked(msg) {
     var value = html(this.value).is(':checked')
-      , expect = format('component to @ be checked');
+      , expect = format('%s component to @ be checked', debug(this.value));
 
     return this.test(value, msg, expect);
   });
@@ -132,7 +147,7 @@ module.exports = function plugin(assume, util) {
    */
   assume.add('disabled', function disabled(msg) {
     var value = html(this.value).is(':disabled')
-      , expect = format('component to @ be disabled');
+      , expect = format('%s component to @ be disabled', debug(this.value));
 
     return this.test(value, msg, expect);
   });
@@ -147,7 +162,7 @@ module.exports = function plugin(assume, util) {
    */
   assume.add('ref', function ref(name, msg) {
     var value = (this.value.instance().refs || {})[name]
-      , expect = format('component to @ ref %s', name);
+      , expect = format('%s component to @ ref %s', debug(this.value), name);
 
     return this.test(!!value, msg, expect);
   });
@@ -189,6 +204,20 @@ module.exports = function plugin(assume, util) {
   });
 
   /**
+   * Assert that the given component is disabled.
+   *
+   * @param {String} msg Reason of assertion failure.
+   * @returns {Assume} The assume instance for chaining.
+   * @public
+   */
+  assume.add('selected', function selected(msg) {
+  });
+
+  assume.add('html', function htmls(str, msg) {
+    var value = this.value
+  });
+
+  /**
    * Assert if the wrapper contains a matching node.
    *
    * @param {String} component The component or node it should have.
@@ -218,8 +247,5 @@ module.exports = function plugin(assume, util) {
   });
 
   assume.add('match', function match(selector, msg) {
-  });
-
-  assume.add('selected', function selected(msg) {
   });
 };
