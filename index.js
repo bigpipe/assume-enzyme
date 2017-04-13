@@ -25,6 +25,11 @@ module.exports = function plugin(assume, util) {
   var ReactWrapper = enzyme.ReactWrapper;
   var format = util.format;
 
+  //
+  // Introduce a new flag.
+  //
+  assume.flags._anywhere = 'anywhere, somewhere';
+
   /**
    * Helper function to check if a given value is an enzyme instance.
    *
@@ -78,6 +83,29 @@ module.exports = function plugin(assume, util) {
   }
 
   /**
+   * Check if anything in the tree matches this.
+   *
+   * @param {Enzyme} value Wrapper we want to iterate over.
+   * @param {Function} fn Iterator.
+   * @returns {Boolean} Did we found anything that matched.
+   * @private
+   */
+  function anywhere(value, fn) {
+    var children = toArray(value.children());
+    var found = false;
+
+    while (children.length) {
+      var node = children.shift();
+      found = fn(node);
+
+      if (found) break;
+      Array.prototype.push.apply(children, toArray(node.children()));
+    }
+
+    return found;
+  }
+
+  /**
    * Assert that our given value is an enzyme wrapper.
    *
    * @param {String} msg Reason of assertion failure.
@@ -104,17 +132,11 @@ module.exports = function plugin(assume, util) {
       , found = value.hasClass(str)
       , expect = format('`%s` to @ have class %s', value.props().className, str);
 
-    if (!this._deep || found) return this.test(found, msg, expect);
+    if (!this._anywhere || found) return this.test(found, msg, expect);
 
-    var children = toArray(value.children());
-
-    while (children.length) {
-      var node = children.shift();
-      found = node.hasClass(str);
-
-      if (found) break;
-      Array.prototype.push.apply(children, toArray(node.children()));
-    }
+    found = anywhere(value, function iterate(node) {
+      return node.hasClass(str);
+    });
 
     return this.test(found, msg, expect);
   });

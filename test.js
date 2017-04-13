@@ -104,8 +104,8 @@ describe('assume-enzyme', function () {
     });
 
     its('finds classNames deeply in the tree using .deep', function (wrapper) {
-      assume(wrapper).deeply.has.className('single-class-name');
-      assume(wrapper).does.not.deeply.have.className('single-class-names');
+      assume(wrapper).anywhere.has.className('single-class-name');
+      assume(wrapper).does.not.anywhere.have.className('single-class-names');
     });
   });
 
