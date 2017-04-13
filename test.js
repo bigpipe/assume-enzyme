@@ -102,6 +102,11 @@ describe('assume-enzyme', function () {
 
       throw new Error('I should fail hard');
     });
+
+    its('finds classNames deeply in the tree using .deep', function (wrapper) {
+      assume(wrapper).deeply.has.className('single-class-name');
+      assume(wrapper).does.not.deeply.have.className('single-class-names');
+    });
   });
 
   describe('.contains', function () {
@@ -239,6 +244,28 @@ describe('assume-enzyme', function () {
       assume(wrapper.find(User).first()).to.have.props({ 'world': 'moly' });
       assume(wrapper.find(User).first()).to.not.have.props(['hi']);
       assume(wrapper.find(User).first()).to.not.have.props({ world: 'what' });
+    });
+  });
+
+  describe('#html', function () {
+    function Fixture() {
+      return (
+        <div className='hello world'>
+          <span className='what'>is up</span>
+        </div>
+      );
+    }
+    const its = renderers(<Fixture />);
+
+    it('is a function', function () {
+      var assumed = assume('what');
+
+      assume(assumed.html).is.a('function');
+    });
+
+    its('finding the props of the component', function (wrapper) {
+      assume(wrapper).to.have.html('<span class="what">is up</span>');
+      assume(wrapper).to.not.have.html('<strong>non existing tag</strong>');
     });
   });
 });

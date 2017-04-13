@@ -48,6 +48,22 @@ module.exports = function plugin(assume, util) {
   }
 
   /**
+   * Transform a wrapper of children in to a proper array.
+   *
+   * @param {Enzyme} wrapper Wrapper
+   * @private
+   */
+  function toArray(wrapper) {
+    var result = new Array(wrapper.length);
+
+    wrapper.forEach(function each(node, index){
+      result[index] = node;
+    });
+
+    return result;
+  }
+
+  /**
    * Clean up the HTML like output of the enzyme debug command so it's more
    * human readable in assertion messages.
    *
@@ -85,9 +101,22 @@ module.exports = function plugin(assume, util) {
    */
   assume.add('className, classNames', function className(str, msg) {
     var value = this.value
+      , found = value.hasClass(str)
       , expect = format('`%s` to @ have class %s', value.props().className, str);
 
-    return this.test(value.hasClass(str), msg, expect);
+    if (!this._deep || found) return this.test(found, msg, expect);
+
+    var children = toArray(value.children());
+
+    while (children.length) {
+      var node = children.shift();
+      found = node.hasClass(str);
+
+      if (found) break;
+      Array.prototype.push.apply(children, toArray(node.children()));
+    }
+
+    return this.test(found, msg, expect);
   });
 
   /**
@@ -204,17 +233,16 @@ module.exports = function plugin(assume, util) {
   });
 
   /**
-   * Assert that the given component is disabled.
+   * Assert that the HTML output of a component includes a given string.
    *
    * @param {String} msg Reason of assertion failure.
    * @returns {Assume} The assume instance for chaining.
    * @public
    */
-  assume.add('selected', function selected(msg) {
-  });
-
   assume.add('html', function htmls(str, msg) {
-    var value = this.value
+    var value = html(this.value).outerHTML.replace(/\sdata-reactid+="[^"]+"/g, '');
+
+    return this.clone(value).includes(str, msg);
   });
 
   /**
@@ -234,7 +262,11 @@ module.exports = function plugin(assume, util) {
   assume.add('exactly', function exactly(value, msg) {
   });
 
-  assume.add('blank', function blank(msg) {
+  assume.add('blank, empty', function blank(msg) {
+    var value = this.value
+      , expect = format('%s to @ be empty', debug(value));
+
+    return this.test(value.isEmpty(), msg, expect);
   });
 
   assume.add('present', function present(msg) {
