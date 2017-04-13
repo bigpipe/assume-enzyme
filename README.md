@@ -16,6 +16,7 @@ npm install --save-dev assume-enzyme
 
 - [enzyme](#enzyme)
 - [className, classNames](#classname-classnames)
+- [contain, contains](#contain-contains)
 - [tagName](#tagName)
 - [checked](#checked)
 - [disabled](#disabled)
