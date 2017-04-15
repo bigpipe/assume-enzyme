@@ -106,6 +106,39 @@ module.exports = function plugin(assume, util) {
   }
 
   /**
+   * Check if an object has a given set of keys / values.
+   *
+   * @param {Object} value Object that needs property checking
+   * @param {Array|Object} what keys or object that it should include.
+   * @private
+   */
+  function properties(value, what) {
+    var passed = true;
+
+    if (util.type(what) === 'array') {
+      util.each(what, function each(key) {
+        passed = hasOwn.call(value, key);
+
+        if (!passed) return false;
+      });
+    } else {
+      var keys = [];
+
+      for (var key in what) {
+        keys.push(key);
+      }
+
+      util.each(keys, function each(key) {
+        passed = util.deep(value[key], what[key]);
+
+        if (!passed) return false;
+      });
+    }
+
+    return passed;
+  }
+
+  /**
    * Assert that our given value is an enzyme wrapper.
    *
    * @param {String} msg Reason of assertion failure.
@@ -236,27 +269,23 @@ module.exports = function plugin(assume, util) {
   assume.add('props', function props(what, msg) {
     var value = this.value.props()
       , expect = format('%j to @ include props %j', value, what)
-      , passed = true;
+      , passed = properties(value, what);
 
-    if (util.type(what) === 'array') {
-      util.each(what, function each(key) {
-        passed = hasOwn.call(value, key);
+    return this.test(passed, msg, expect);
+  });
 
-        if (!passed) return false;
-      });
-    } else {
-      var keys = [];
-
-      for (var key in what) {
-        keys.push(key);
-      }
-
-      util.each(keys, function each(key) {
-        passed = util.deep(value[key], what[key]);
-
-        if (!passed) return false;
-      });
-    }
+  /**
+   * Assert state.
+   *
+   * @param {Array|Object} what Keys, or key/value we want to include.
+   * @param {String} msg Reason of assertion failure.
+   * @returns {Assume} The assume instance for chaining.
+   * @public
+   */
+  assume.add('state', function state(what, msg) {
+    var value = this.value.state()
+      , expect = format('%j to @ include state %j', value, what)
+      , passed = properties(value, what);
 
     return this.test(passed, msg, expect);
   });
@@ -264,49 +293,43 @@ module.exports = function plugin(assume, util) {
   /**
    * Assert that the HTML output of a component includes a given string.
    *
+   * @param {String} str HTML string the representation should include.
    * @param {String} msg Reason of assertion failure.
    * @returns {Assume} The assume instance for chaining.
    * @public
    */
   assume.add('html', function htmls(str, msg) {
-    var value = html(this.value).outerHTML.replace(/\sdata-reactid+="[^"]+"/g, '');
+    var outer = value.html().replace(/\sdata-reactid+="[^"]+"/g, '');
 
     return this.clone(value).includes(str, msg);
   });
 
   /**
-   * Assert if the wrapper contains a matching node.
+   * Assert that a component or child is empty.
    *
-   * @param {String} component The component or node it should have.
    * @param {String} msg Reason of assertion failure.
    * @returns {Assume} The assume instance for chaining.
    * @public
    */
-  assume.add('containMatchingElement', function containMatchingElement(component, msg) {
-  });
-
-  assume.add('descendants', function descendants(selector, msg) {
-  });
-
-  assume.add('exactly', function exactly(value, msg) {
-  });
-
   assume.add('blank, empty', function blank(msg) {
     var value = this.value
       , expect = format('%s to @ be empty', debug(value));
 
-    return this.test(value.isEmpty(), msg, expect);
+    return this.test(value.children().length === 0, msg, expect);
   });
 
-  assume.add('present', function present(msg) {
-  });
+  /**
+   * Assert that a given wrapper has the component name.
+   *
+   * @param {String} what Name of the component.
+   * @param {String} msg Reason of assertion failure.
+   * @returns {Assume} The assume instance for chaining.
+   * @public
+   */
+  assume.add('name', function type(what, msg) {
+    var value = this.value.name()
+      , expect = format('Component name %s to be type %s', value, what);
 
-  assume.add('html', function html(value, msg) {
-  });
-
-  assume.add('id', function id(value, msg) {
-  });
-
-  assume.add('match', function match(selector, msg) {
+    return this.test(value === what, msg, expect);
   });
 };
