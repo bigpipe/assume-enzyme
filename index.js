@@ -267,9 +267,23 @@ module.exports = function plugin(assume, util) {
    * @public
    */
   assume.add('props', function props(what, msg) {
-    var value = this.value.props()
-      , expect = format('%j to @ include props %j', value, what)
-      , passed = properties(value, what);
+    var value = this.value
+      , expect
+      , passed;
+
+    //
+    // Hack: When calling .props() on a root node, it doesn't return the props.
+    // So we need to check if we need to get the instance props or enzyme's
+    // props.
+    //
+    if (value.root == value) {
+      value = value.instance().props;
+    } else {
+      value = value.props();
+    }
+
+    expect = format('%j to @ include props %j', value, what);
+    passed = properties(value, what);
 
     return this.test(passed, msg, expect);
   });

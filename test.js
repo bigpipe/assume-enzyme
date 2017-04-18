@@ -250,7 +250,7 @@ describe('assume-enzyme', function () {
       );
     }
 
-    const propWrapper = renderers(<FixtureProps />);
+    const propWrapper = renderers(<FixtureProps min={1} max={2} />);
 
     it('is a function', function () {
       const assumed = assume('what');
@@ -263,6 +263,10 @@ describe('assume-enzyme', function () {
       assume(wrapper.find(UserProps).first()).to.have.props({ 'world': 'moly' });
       assume(wrapper.find(UserProps).first()).to.not.have.props(['hi']);
       assume(wrapper.find(UserProps).first()).to.not.have.props({ world: 'what' });
+    });
+
+    propWrapper('finds the props on the supplied enzyme instance', function (wrapper) {
+      assume(wrapper).to.have.props({min: 1, max: 2});
     });
   });
 
