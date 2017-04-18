@@ -111,3 +111,7 @@ Assert that a component has a given set of props assigned to it.
 
 ```js
 ```
+
+## License
+
+MIT
