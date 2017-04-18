@@ -1,5 +1,7 @@
 # assume-enzyme
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/bigpipe/assume-enzyme.svg)](https://greenkeeper.io/)
+
 The `assume-enzyme` module provides a more human readable API and assertion
 output when using Enzyme in your test suite.
 
